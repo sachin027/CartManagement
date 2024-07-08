@@ -1,0 +1,250 @@
+﻿
+@{
+    ViewBag.Title = "AdminHomepage";
+}
+
+<h2>CreateOrder</h2>
+
+
+<div class="container">
+    <p class="text-danger" style="float:right;font-size:16px;font-weight:600" id="orderErr"></p>
+    @*<div class="top">
+        <div class="dropdown">
+            @Html.Label("select item", new { @class = "form-label" })
+            @Html.DropDownList("Item", new SelectList(ViewBag.ItemList, "ItemId", "ItemName"), new { @class = "form-control" })
+            @Html.Label("Enter Quentity", new { @class = "form-label" })
+            @Html.TextBox("Qty", "", new { @class = "form-control", @type = "number" })
+            <p id="error" class="text-danger"></p>
+        </div>
+        <div class="addBtnDiv">
+            <button class="addBtn" id="createOrder">Add</button>
+        </div>
+    </div>*@
+
+<div class="card-body">
+    @*<h5 class="card-title">Add new order</h5>*@
+    <div class="form-group col-lg-4 mb-3">
+        <label for="exampleFormControlSelect1">Select Item</label>
+        <select class="form-control " name="ItemName" id="ItemId">
+            <option value="" selected hidden>--Select Item--</option>
+
+            @if (@ViewBag.ItemList != null)
+            {
+                foreach (var Item in ViewBag.ItemList)
+                {
+                    <option value="@Item.ItemId">@Item.ItemName</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="form-group col-lg-4 mb-3">
+        <label for="exampleFormControlSelect1">Quantity</label>
+        <input type="number" name="Quantity" id="quantity" class="form-control" min="0" />
+        <p id="error" class="text-danger"></p>
+    </div>
+    <div class="addBtnDiv">
+        <button class="btn btn-primary addBtn" id="createOrder" >Add</button>
+    </div>
+    @*<button type="button" class="btn btn-primary" id="addBUtton">Add</button>*@
+</div>
+
+    <table class="table table-bordered" id="orderTable">
+        <thead>
+            <tr>
+                <th scope="col">Item Name</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Total</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody id="ItemTableBody">
+            @*<tr><td colspan="5" style="text-align:center">No Item Addded</td></tr>*@
+        </tbody>
+    </table>
+
+    <div id="extraDetail" style="display:none">
+        <div class="gst">
+            <div class="sgst">
+                <div class="text">SGST  5%</div>
+                <div class="amount" id="sgst"></div>
+            </div>
+            <div class="cgst">
+                <div class="text">CGST  5%</div>
+                <div class="amount" id="cgst"></div>
+            </div>
+            <div class="payable">
+                <div class="text">Total Payble Amount</div>
+                <div class="amount" id="totalAmount"></div>
+            </div>
+        </div>
+        <div class="coupen">
+            <div class="text">Apply Coupen</div>
+            <div class="dropdown">
+                <input type="text" class="form-control" id="coupenCode" placeholder="Enter Coupen Code" />
+                <p class="text-danger" id="coupenErr"></p>
+                <p class="text-success" id="coupenSuccess"></p>
+            </div>
+            <div class="applyDiv">
+                <button class="applyBtn btn btn-primary">apply</button>
+            </div>
+        </div>
+        <div>
+            <div class="netpayble">
+                <div class="text">Net Payble Amount</div>
+                <div class="amount" id="netpaybleamount" ></div>
+            </div>
+        </div>
+        <div class="addOrder">
+            <button class="btn btn-success btn-lg" id="createNewOrder">Create Order</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+        var ItemArray = [];
+        var netpaybleamount = 0;
+        var CGST = 0;
+        var SGST =0;
+        var totalPaybleAmount =  0;
+
+    function checkValidItem() {
+        if ($('#quantity').val() <= 0 || !$('#quantity').val()) {
+            $("#error").text("Please Enter Valid Quantity");
+            return false;
+        }
+        else{
+            $("#error").text("");
+        }
+        return true;
+    };
+
+    function addItemIntoObject() {
+        var itemId = $('#ItemId').val();
+        var itemQuantity = $('#quantity').val();
+
+        $.ajax({
+            url: '/Admin/GetItemDetails?id=' + itemId,
+            type: 'GET',
+            success: function (data) {
+                var price = data.ItemAmount;
+                console.log(price);
+                var totalPrice = itemQuantity * price;
+                console.log(totalPrice);
+                var itemName = data.ItemName;
+                var itemObj = {
+                    ItemId: itemId,
+                    ItemName: itemName,
+                    ItemQuantity: parseInt(itemQuantity),
+                    Price: parseFloat(price),
+                    totalPrice: parseFloat(totalPrice)
+                };
+                
+                ItemArray.push(itemObj);
+                console.log(ItemArray);
+                ShowItemIntoTable(itemObj);
+            },
+            error: function (error) {
+                console.error('Error fetching item details:', error);
+            }
+        })
+    }
+
+    function ShowItemIntoTable(data) {
+
+        var existingItem = $('#orderTable tbody').find('tr[data-itemid="' + data.ItemId + '"]');
+        if (existingItem.length > 0) {
+            // Update existing row if item already exists
+            var currentQuantity = parseInt(existingItem.find('.itemQuantity').text()) || 0; // Ensure default to 0 if NaN
+            var newQuantity = currentQuantity + parseInt(data.ItemQuantity);
+            var totalPrice = newQuantity * parseFloat(data.Price);
+            existingItem.find('.itemQuantity').text(newQuantity);
+            existingItem.find('.totalPrice').text(totalPrice.toFixed(2));
+        } else {
+            // Add new row if item does not exist
+            var newRow = '<tr data-itemid="' + data.ItemId + '">' +
+                '<td>' + data.ItemName + '</td>' +
+                '<td class="itemQuantity">' + data.ItemQuantity + '</td>' +
+                '<td>' + data.Price + '</td>' +
+                '<td class="totalPrice">' + data.totalPrice.toFixed(2) + '</td>' +
+                '<td><button class="edit btn btn-primary">Edit</button> <button class="delete btn btn-danger">Delete</button></td>' +
+                '</tr>';
+            $('#orderTable tbody').append(newRow);
+            $("#extraDetail").show();
+            
+        }
+        updateTotals(); // Update totals after adding or updating a row
+    }
+
+   function updateTotals() {
+        var totalItems = 0;
+        var totalOfPrice = 0;
+        var totalPrice = 0;
+        $('#orderTable tbody tr').each(function () {
+            var quantity = parseInt($(this).find('.itemQuantity').text()) || 0; // Ensure default to 0 if NaN
+            totalPrice = parseFloat($(this).find('.totalPrice').text()) || 0; // Ensure default to 0 if NaN
+            totalItems += quantity;
+            totalOfPrice += totalPrice;
+        });
+
+        // Update totals row
+        var totalsRow = '<tr id="totalsRow">' +
+            '<td colspan="3">Total Items: ' + totalItems + '</td>' +
+            '<td colspan="2">Total Price: ' + totalOfPrice.toFixed(2) + '</td>' +
+            '</tr>';
+
+        $('#totalsRow').remove(); // Remove existing totals row if it exists
+        $('#orderTable tbody').append(totalsRow);
+        CGST = totalOfPrice * 5 / 100;
+        SGST = totalOfPrice * 5 / 100;
+        totalPaybleAmount = CGST + SGST + totalOfPrice;
+       netpaybleamount = totalPaybleAmount;
+        $('#cgst').text(CGST)
+       $('#sgst').text(SGST)
+       $('#totalAmount').text(totalPaybleAmount);
+       $('#netpaybleamount').text(netpaybleamount);
+    }
+
+    $('.applyBtn').on('click', function () {
+        var code = $('#coupenCode').val();
+        console.log("clcik ", code);
+        $.ajax({
+            url: '/Admin/ApplyCoupen?code=' + code,
+            type: 'GET',
+            success: function (data) {
+                console.log("data", data);
+                if (data.IsActive == 1) {
+                    if (data.success == 1) {
+                        if (data.Type == "Percentage") {
+                            var percent = parseInt(data.Percentage);
+                            var coupenAmount = totalPaybleAmount * percent / 100;
+                            $('#netpaybleamount').text(totalPaybleAmount - coupenAmount);
+                        } else if (data.Type == "Flat") {
+                            var flatAmount = data.FlatAmount;
+                            $('#netpaybleamount').text(totalPaybleAmount - flatAmount);
+                
+                        }
+                    } else if (data.success == 0) {
+                        console.log("coupen expired");
+                    } else if (data.success == 2) {
+                        console.log("coupen limit over");
+                    } else {
+                        console.log("coupen expired");
+                    }
+                }
+            }
+        });
+    });
+
+
+    $('.addBtn').on('click', function () {
+        if (checkValidItem()) {
+            addItemIntoObject();
+        }
+        console.log("Sachin");
+    })
+    
+</script>
+

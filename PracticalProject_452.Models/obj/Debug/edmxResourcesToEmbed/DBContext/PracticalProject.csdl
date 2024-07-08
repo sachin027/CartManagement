@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="PracticalTask_452Model" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="CouponCodeMaster">
+    <Key>
+      <PropertyRef Name="CouponId" />
+    </Key>
+    <Property Name="CouponId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Code" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="Type" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+    <Property Name="FlatAmount" Type="Int32" />
+    <Property Name="Percentage" Type="Int32" />
+    <Property Name="Expirydate" Type="DateTime" Precision="0" />
+    <Property Name="UsageLimit" Type="Int32" />
+    <Property Name="IsActive" Type="Boolean" />
+  </EntityType>
+  <EntityType Name="ItemDetails">
+    <Key>
+      <PropertyRef Name="ItemId" />
+    </Key>
+    <Property Name="ItemId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="ItemName" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="ItemQty" Type="Int32" />
+    <Property Name="ItemAmount" Type="Decimal" Precision="12" Scale="2" />
+    <Property Name="OrderId" Type="Int32" />
+    <NavigationProperty Name="Orders" Relationship="Self.FK__ItemDetai__Order__412EB0B6" FromRole="ItemDetails" ToRole="Orders" />
+  </EntityType>
+  <EntityType Name="ItemMaster">
+    <Key>
+      <PropertyRef Name="ItemId" />
+    </Key>
+    <Property Name="ItemId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="ItemName" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="ItemAmount" Type="Decimal" Precision="10" Scale="2" />
+  </EntityType>
+  <EntityType Name="Orders">
+    <Key>
+      <PropertyRef Name="OrderId" />
+    </Key>
+    <Property Name="OrderId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="TotalItems" Type="Int32" />
+    <Property Name="TotalAmount" Type="Decimal" Precision="15" Scale="2" />
+    <Property Name="Cgst" Type="Decimal" Precision="10" Scale="2" />
+    <Property Name="Sgst" Type="Decimal" Precision="10" Scale="2" />
+    <Property Name="PaybleAmount" Type="Decimal" Precision="25" Scale="2" />
+    <Property Name="NetPaybleAmount" Type="Decimal" Precision="25" Scale="2" />
+    <Property Name="PromoCode" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="OrderDate" Type="DateTime" Precision="0" />
+    <Property Name="UserId" Type="Int32" />
+    <NavigationProperty Name="ItemDetails" Relationship="Self.FK__ItemDetai__Order__412EB0B6" FromRole="Orders" ToRole="ItemDetails" />
+    <NavigationProperty Name="Users" Relationship="Self.FK__Orders__UserId__3E52440B" FromRole="Orders" ToRole="Users" />
+  </EntityType>
+  <EntityType Name="Users">
+    <Key>
+      <PropertyRef Name="UserId" />
+    </Key>
+    <Property Name="UserId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="UserName" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="Email" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+    <Property Name="Password" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="Orders" Relationship="Self.FK__Orders__UserId__3E52440B" FromRole="Users" ToRole="Orders" />
+  </EntityType>
+  <Association Name="FK__ItemDetai__Order__412EB0B6">
+    <End Role="Orders" Type="Self.Orders" Multiplicity="0..1" />
+    <End Role="ItemDetails" Type="Self.ItemDetails" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Orders">
+        <PropertyRef Name="OrderId" />
+      </Principal>
+      <Dependent Role="ItemDetails">
+        <PropertyRef Name="OrderId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Orders__UserId__3E52440B">
+    <End Role="Users" Type="Self.Users" Multiplicity="0..1" />
+    <End Role="Orders" Type="Self.Orders" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Users">
+        <PropertyRef Name="UserId" />
+      </Principal>
+      <Dependent Role="Orders">
+        <PropertyRef Name="UserId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="PracticalTask_452Entities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="CouponCodeMaster" EntityType="Self.CouponCodeMaster" />
+    <EntitySet Name="ItemDetails" EntityType="Self.ItemDetails" />
+    <EntitySet Name="ItemMaster" EntityType="Self.ItemMaster" />
+    <EntitySet Name="Orders" EntityType="Self.Orders" />
+    <EntitySet Name="Users" EntityType="Self.Users" />
+    <AssociationSet Name="FK__ItemDetai__Order__412EB0B6" Association="Self.FK__ItemDetai__Order__412EB0B6">
+      <End Role="Orders" EntitySet="Orders" />
+      <End Role="ItemDetails" EntitySet="ItemDetails" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Orders__UserId__3E52440B" Association="Self.FK__Orders__UserId__3E52440B">
+      <End Role="Users" EntitySet="Users" />
+      <End Role="Orders" EntitySet="Orders" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>
