@@ -1,52 +1,52 @@
 ﻿
 @{
     ViewBag.Title = "AdminHomepage";
+    Layout = "~/Views/Shared/_LayoutCartPage.cshtml";
 }
 
-<h2>CreateOrder</h2>
+<h2 class="text-center">Cash Counter </h2>
 
+@if (TempData["success"] != null)
+{
+    <script>
+        toastr.success('@TempData["success"]');
+    </script>
+}
 
+@if (TempData["error"] != null)
+{
+    <script>
+        toastr.error('@TempData["error"]');
+    </script>
+}
 <div class="container">
     <p class="text-danger" style="float:right;font-size:16px;font-weight:600" id="orderErr"></p>
-    @*<div class="top">
-        <div class="dropdown">
-            @Html.Label("select item", new { @class = "form-label" })
-            @Html.DropDownList("Item", new SelectList(ViewBag.ItemList, "ItemId", "ItemName"), new { @class = "form-control" })
-            @Html.Label("Enter Quentity", new { @class = "form-label" })
-            @Html.TextBox("Qty", "", new { @class = "form-control", @type = "number" })
-            <p id="error" class="text-danger"></p>
-        </div>
-        <div class="addBtnDiv">
-            <button class="addBtn" id="createOrder">Add</button>
-        </div>
-    </div>*@
+    <div class="card mx-auto mb-4">
+        <div class="card-body row">
+            <div class="form-group col-lg-4 mb-3">
+                <label for="exampleFormControlSelect1">Select Item</label>
+                <select class="form-control " name="ItemName" id="ItemId">
+                    <option value="" selected hidden>--Select Item--</option>
 
-<div class="card-body">
-    @*<h5 class="card-title">Add new order</h5>*@
-    <div class="form-group col-lg-4 mb-3">
-        <label for="exampleFormControlSelect1">Select Item</label>
-        <select class="form-control " name="ItemName" id="ItemId">
-            <option value="" selected hidden>--Select Item--</option>
-
-            @if (@ViewBag.ItemList != null)
-            {
-                foreach (var Item in ViewBag.ItemList)
-                {
-                    <option value="@Item.ItemId">@Item.ItemName</option>
-                }
-            }
-        </select>
+                    @if (@ViewBag.ItemList != null)
+                    {
+                        foreach (var Item in ViewBag.ItemList)
+                        {
+                            <option value="@Item.ItemId">@Item.ItemName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group col-lg-4 mb-3">
+                <label for="exampleFormControlSelect1">Quantity</label>
+                <input type="number" name="Quantity" id="quantity" class="form-control" min="0" />
+                <p id="error" class="text-danger"></p>
+            </div>
+            <div class="addBtnDiv my-auto">
+                <button class="btn btn-primary addBtn" id="createOrder">Add</button>
+            </div>
+        </div>
     </div>
-    <div class="form-group col-lg-4 mb-3">
-        <label for="exampleFormControlSelect1">Quantity</label>
-        <input type="number" name="Quantity" id="quantity" class="form-control" min="0" />
-        <p id="error" class="text-danger"></p>
-    </div>
-    <div class="addBtnDiv">
-        <button class="btn btn-primary addBtn" id="createOrder" >Add</button>
-    </div>
-    @*<button type="button" class="btn btn-primary" id="addBUtton">Add</button>*@
-</div>
 
     <table class="table table-bordered" id="orderTable">
         <thead>
@@ -62,56 +62,106 @@
             @*<tr><td colspan="5" style="text-align:center">No Item Addded</td></tr>*@
         </tbody>
     </table>
-
     <div id="extraDetail" style="display:none">
-        <div class="gst">
-            <div class="sgst">
-                <div class="text">SGST  5%</div>
-                <div class="amount" id="sgst"></div>
+        <div class="bill-summary">
+            <table class="table table-bordered" style="border: 1px solid #ddd; border-radius: 10px; background-color: #f9f9f9; padding: 20px;">
+                <tr>
+                    <th style="background-color: #337ab7; color: #fff; padding: 10px; border: none;">GST Breakdown</th>
+                    <th style="background-color: #337ab7; color: #fff; padding: 10px; border: none;">Amount</th>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: none;">SGST (5%)</td>
+                    <td style="padding: 10px; border: none;" id="sgst"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: none;">CGST (5%)</td>
+                    <td style="padding: 10px; border: none;" id="cgst"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: none; color: black; font-size: 24px; font-weight: bold; ">Total Payable Amount</td>
+                    <td style="padding: 10px; border: none; font-size: 24px; font-weight: bold; color: black; " id="totalAmount"></td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: none; color: #2ecc71; font-size: 24px; font-weight: bold; ">Net Payable Amount</td>
+                    <td style="padding: 10px; border: none; font-size: 24px; font-weight: bold; color: #2ecc71;" id="netpaybleamount"></td>
+                </tr>
+                <tr>
+                    <td colspan="2" style="padding: 10px; border: none; font-size: 18px; font-weight: bold; color: #e67e22; ">Discount Applied: <span id="discountAmount"></span></td>
+                </tr>
+            </table>
+        </div>
+        <!-- Add the coupon application and create order button below the table -->
+        <div class="coupen-section row">
+            <h5 class="coupen-title">Apply Coupon</h5>
+            <div class="coupen-input col-lg-4">
+                <input type="text" class="form-control" id="coupenCode" placeholder="Enter Coupon Code" style="font-size: 16px; padding: 10px; border: 1px solid #ccc;" />
+                <p class="text-danger" id="coupenErr" style="font-size: 14px; color: #d32f2f;"></p>
+                <p class="text-success" id="coupenSuccess" style="font-size: 14px; color: #2ecc71;"></p>
+
+                <div id="coupenSuccess"></div>
             </div>
-            <div class="cgst">
-                <div class="text">CGST  5%</div>
-                <div class="amount" id="cgst"></div>
-            </div>
-            <div class="payable">
-                <div class="text">Total Payble Amount</div>
-                <div class="amount" id="totalAmount"></div>
+            <div class="apply-btn col-lg-3">
+                <button class="applyBtn btn btn-primary" style="font-size: 16px; padding: 10px; border: none; border-radius: 5px; background-color: #337ab7; color: #fff;">Apply</button>
             </div>
         </div>
-        <div class="coupen">
-            <div class="text">Apply Coupen</div>
-            <div class="dropdown">
-                <input type="text" class="form-control" id="coupenCode" placeholder="Enter Coupen Code" />
-                <p class="text-danger" id="coupenErr"></p>
-                <p class="text-success" id="coupenSuccess"></p>
-            </div>
-            <div class="applyDiv">
-                <button class="applyBtn btn btn-primary">apply</button>
-            </div>
-        </div>
-        <div>
-            <div class="netpayble">
-                <div class="text">Net Payble Amount</div>
-                <div class="amount" id="netpaybleamount" ></div>
-            </div>
-        </div>
-        <div class="addOrder">
-            <button class="btn btn-success btn-lg" id="createNewOrder">Create Order</button>
+
+        <div class="add-order-btn">
+            <button class="btn btn-success btn-lg" id="createNewOrder" onclick="createOrder()" style="font-size: 18px; padding: 15px; border: none; border-radius: 5px; background-color: #2ecc71; color: #fff;">Create Order</button>
         </div>
     </div>
+    @*<div id="extraDetail" style="display:none">
+            <div class="gst">
+                <div class="sgst">
+                    <div class="text">SGST  5%</div>
+                    <div class="amount" id="sgst"></div>
+                </div>
+                <div class="cgst">
+                    <div class="text">CGST  5%</div>
+                    <div class="amount" id="cgst"></div>
+                </div>
+                <div class="payable">
+                    <div class="text">Total Payble Amount</div>
+                    <div class="amount" id="totalAmount"></div>
+                </div>
+            </div>
+            <div class="coupen">
+                <div class="text">Apply Coupen</div>
+                <div class="dropdown">
+                    <input type="text" class="form-control" id="coupenCode" placeholder="Enter Coupen Code" />
+                    <p class="text-danger" id="coupenErr"></p>
+                    <p class="text-success" id="coupenSuccess"></p>
+                </div>
+                <div class="applyDiv">
+                    <button class="applyBtn btn btn-primary">apply</button>
+                </div>
+            </div>
+            <div>
+                <div class="netpayble">
+                    <div class="text">Net Payble Amount</div>
+                    <div class="amount" id="netpaybleamount" ></div>
+                </div>
+            </div>
+            <div class="addOrder">
+                <button class="btn btn-success btn-lg" id="createNewOrder" onclick="createOrder()">Create Order</button>
+            </div>
+        </div>*@
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 
         var ItemArray = [];
+        var obj = {};
         var netpaybleamount = 0;
         var CGST = 0;
         var SGST =0;
-        var totalPaybleAmount =  0;
+        var totalPaybleAmount = 0;
+        var discountAmount = 0;
 
     function checkValidItem() {
         if ($('#quantity').val() <= 0 || !$('#quantity').val()) {
+            toastr.error("Please enter quantity!");
             $("#error").text("Please Enter Valid Quantity");
             return false;
         }
@@ -169,13 +219,66 @@
                 '<td class="itemQuantity">' + data.ItemQuantity + '</td>' +
                 '<td>' + data.Price + '</td>' +
                 '<td class="totalPrice">' + data.totalPrice.toFixed(2) + '</td>' +
-                '<td><button class="edit btn btn-primary">Edit</button> <button class="delete btn btn-danger">Delete</button></td>' +
+                '<td> <button class="delete btn btn-danger" onclick=deleteItem(' + data.ItemId + ')  data-itemid=${data.ItemId}>Delete</button></td>' +
                 '</tr>';
             $('#orderTable tbody').append(newRow);
             $("#extraDetail").show();
             
         }
+
         updateTotals(); // Update totals after adding or updating a row
+    }
+    //function deleteItem(itemId) {
+    //    console.log('Deleting item with ID:', itemId);
+    //    console.log('ItemArray:', ItemArray);
+    //    var index = ItemArray.findIndex(item => parseInt( item.ItemId )=== itemId );
+    //    console.log('Index:', index);
+    //    if (index !== -1) {
+    //        ItemArray.splice(index, 1); // Remove item from array
+    //        ShowItemTable(); // Update HTML table display after deletion
+    //        updateTotals(); // Update totals after deletion
+    //    } else {
+    //        console.log('Item not found in array');
+    //    }
+    //}
+    function deleteItem(itemId) {
+        console.log('Deleting item with ID:', itemId);
+        console.log('ItemArray:', ItemArray);
+
+        // Use SweetAlert2 for confirmation dialog
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'You will not be able to recover this item!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'No, keep it'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Find index of item in ItemArray
+                var index = ItemArray.findIndex(item => parseInt(item.ItemId) === itemId);
+                console.log('Index:', index);
+                if (index !== -1) {
+                    ItemArray.splice(index, 1); // Remove item from array
+                    ShowItemTable(); // Update HTML table display after deletion
+                    updateTotals(); // Update totals after deletion
+
+                    Swal.fire(
+                        'Deleted!',
+                        'Your item has been deleted.',
+                        'success'
+                    );
+                } else {
+                    console.log('Item not found in array');
+                }
+            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                Swal.fire(
+                    'Cancelled',
+                    'Your item is safe :)',
+                    'error'
+                );
+            }
+        });
     }
 
    function updateTotals() {
@@ -205,11 +308,130 @@
        $('#sgst').text(SGST)
        $('#totalAmount').text(totalPaybleAmount);
        $('#netpaybleamount').text(netpaybleamount);
+
+      
+    }
+
+    //function createOrder() {
+    //        var TotalItems1 = 0;
+    //        var TotalPrice1 = 0;
+    //        ItemArray.forEach(function (item) {
+    //            TotalItems1 += item.ItemQuantity;
+    //            TotalPrice1 += item.totalPrice;
+    //        });
+    //        var TotalItems = TotalItems1;
+    //        var TotalPrice = TotalPrice1;
+    //        var CSGST = parseInt($('#cgst').text());
+    //        var SGST = parseInt($('#sgst').text());
+    //        var Payable = parseInt($('#totalAmount').text());
+    //        var NetPaybleAmount = $('#netpaybleamount').text();
+    //        var PromoCode = $('#coupenCode').val();
+    //        console.log("promor", PromoCode);
+
+    //        var Orders = {
+    //            orderTable: ItemArray,
+    //            TotalItems: TotalItems,
+    //            TotalPrice: TotalPrice,
+    //            CSGST: CSGST,
+    //            SGST: SGST,
+    //            Payable: Payable,
+    //            NetPaybleAmount: NetPaybleAmount,
+    //            PromoCode: PromoCode
+    //        };
+    //        $.ajax({
+    //            url: '/Admin/CreateOrder',
+    //            type: 'POST',
+    //            contentType: 'application/json',
+    //            data: JSON.stringify(Orders),
+    //            success: function (data) {
+    //                Swal.fire({
+    //                    icon: 'success',
+    //                    title: 'Order Placed successfully 😊',
+    //                    showConfirmButton: false,
+    //                    timer: 2000 // Auto close after 1.5 seconds
+    //                });
+    //                toastr.success("Order Placed successfully");
+    //                console.log("success");
+    //            },
+    //            error: function (error) {
+    //                toastr.error("something went wrong!");
+    //                console.error('Error placing order:', error);
+    //            }
+    //        });
+
+    //    console.log("order created");
+    //}
+
+    function createOrder() {
+        var TotalItems1 = 0;
+        var TotalPrice1 = 0;
+        ItemArray.forEach(function (item) {
+            TotalItems1 += item.ItemQuantity;
+            TotalPrice1 += item.totalPrice;
+        });
+        var TotalItems = TotalItems1;
+        var TotalPrice = TotalPrice1;
+        var CSGST = parseInt($('#cgst').text());
+        var SGST = parseInt($('#sgst').text());
+        var Payable = parseInt($('#totalAmount').text());
+        var NetPaybleAmount = $('#netpaybleamount').text();
+        var PromoCode = $('#coupenCode').val();
+        console.log("promor", PromoCode);
+
+        var Orders = {
+            orderTable: ItemArray,
+            TotalItems: TotalItems,
+            TotalPrice: TotalPrice,
+            CSGST: CSGST,
+            SGST: SGST,
+            Payable: Payable,
+            NetPaybleAmount: NetPaybleAmount,
+            PromoCode: PromoCode
+        };
+
+        $.ajax({
+            url: '/Admin/CreateOrder',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(Orders),
+            success: function (data) {
+                if (data.success) {
+                    window.location.href = '/Admin/AdminHomepage';
+                    // Show SweetAlert2 success message with smiley face
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Order Placed successfully 😊',
+                        showConfirmButton: false,
+                        timer: 2000 // Auto close after 2 seconds
+                    });
+
+                    // Update UI or perform actions after successful order creation
+                    console.log("success");
+                } else {
+                    window.location.href = '/Admin/AdminHomepage';
+                    toastr.error("Something went wrong!");
+                    console.error('Error placing order:', data.error);
+                }
+            },
+            error: function (error) {
+                window.location.href = '/Admin/AdminHomepage';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Order Placed successfully 😊',
+                    showConfirmButton: false,
+                    timer: 2000 // Auto close after 2 seconds
+                });
+            },
+            complete: function () {
+                // Handle completion tasks if needed
+            }
+        });
+
+        console.log("Order creation process initiated");
     }
 
     $('.applyBtn').on('click', function () {
         var code = $('#coupenCode').val();
-        console.log("clcik ", code);
         $.ajax({
             url: '/Admin/ApplyCoupen?code=' + code,
             type: 'GET',
@@ -218,19 +440,28 @@
                 if (data.IsActive == 1) {
                     if (data.success == 1) {
                         if (data.Type == "Percentage") {
+                            toastr.success("coupen applied successfully");
                             var percent = parseInt(data.Percentage);
                             var coupenAmount = totalPaybleAmount * percent / 100;
                             $('#netpaybleamount').text(totalPaybleAmount - coupenAmount);
+                            discountAmount = coupenAmount;
+                            $('#discountAmount').text(discountAmount.toFixed(2));
+
                         } else if (data.Type == "Flat") {
                             var flatAmount = data.FlatAmount;
                             $('#netpaybleamount').text(totalPaybleAmount - flatAmount);
-                
+                            toastr.success("coupen applied successfully");
+                            discountAmount = flatAmount;
+                            $('#discountAmount').text(discountAmount.toFixed(2));
                         }
                     } else if (data.success == 0) {
+                        toastr.error("coupen expired!");
                         console.log("coupen expired");
                     } else if (data.success == 2) {
+                        toastr.error("coupen usage limit over !");
                         console.log("coupen limit over");
                     } else {
+                        toastr.error("coupen expired !");
                         console.log("coupen expired");
                     }
                 }
@@ -238,13 +469,28 @@
         });
     });
 
+    function ShowItemTable() {
+        $('#orderTable tbody').empty(); // Clear existing table rows
+        ItemArray.forEach(data => {
+            var newRow = '<tr data-itemid="' + data.ItemId + '">' +
+                '<td>' + data.ItemName + '</td>' +
+                '<td class="itemQuantity">' + data.ItemQuantity + '</td>' +
+                '<td>' + data.Price + '</td>' +
+                '<td class="totalPrice">' + data.totalPrice.toFixed(2) + '</td>' +
+                '<td> <button class="delete btn btn-danger" onclick="deleteItem(' + data.ItemId + ')">Delete</button></td>' +
+                '</tr>';
+            $('#orderTable tbody').append(newRow);
+        });
+        updateTotals(); // Update totals after updating the table
+    }
+
 
     $('.addBtn').on('click', function () {
         if (checkValidItem()) {
+            toastr.success("Item added !");
             addItemIntoObject();
         }
-        console.log("Sachin");
     })
-    
+
 </script>
 

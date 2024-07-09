@@ -1,0 +1,53 @@
+﻿@model List<PracticalProject_452.Models.DBContext.Orders>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #007bff;
+        color: white;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+</style>
+
+<table>
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Total Quantity</th>
+            <th>Amount</th>
+            <th>After GST</th>
+            <th>Promo</th>
+            <th>Total Payable</th>
+            <th>CGST</th>
+            <th>SGST</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var order in Model)
+        {
+        <tr>
+            <td>@order.OrderDate</td>
+            <td>@order.TotalItems</td>
+            <td>@order.TotalAmount</td>
+            <td>@order.PaybleAmount</td>
+            <td>@order.PromoCode</td>
+            <td>@order.NetPaybleAmount</td>
+            <td>@order.Cgst</td>
+            <td>@order.Sgst</td>
+        </tr>
+        }
+    </tbody>
+</table>

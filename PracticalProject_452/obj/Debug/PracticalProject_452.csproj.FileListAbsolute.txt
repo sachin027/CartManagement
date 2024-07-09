@@ -84,3 +84,4 @@ C:\Sachin\MVC\PracticalProject_452\PracticalProject_452\bin\Microsoft.CodeDom.Pr
 C:\Sachin\MVC\PracticalProject_452\PracticalProject_452\obj\Debug\PracticalProject_452.csproj.CopyComplete
 C:\Sachin\MVC\PracticalProject_452\PracticalProject_452\obj\Debug\PracticalProject_452.dll
 C:\Sachin\MVC\PracticalProject_452\PracticalProject_452\obj\Debug\PracticalProject_452.pdb
+C:\Sachin\MVC\PracticalProject_452\PracticalProject_452\bin\Rotativa.dll

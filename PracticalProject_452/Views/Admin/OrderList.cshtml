@@ -1,0 +1,141 @@
+﻿@model List<PracticalProject_452.Models.ViewModel.OrderViewModel>
+@{
+    ViewBag.Title = "OrderList";
+    Layout = "~/Views/Shared/_LayoutCartPage.cshtml";
+}
+
+
+<div class="card mx-auto w-50" style="background-color: #f7f7f7; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+    <h5 style="margin-top: 0;">Search Records</h5>
+    <form id="searchForm" method="post" action="@Url.Action("OrderList", "Admin")">
+        <div class="row">
+            <div class="form-group col-lg-6">
+                <label for="startDate">Start Date</label>
+                <input type="date" id="startDate" name="StartDate" class="form-control" value="" />
+            </div>
+            <div class="form-group col-lg-6">
+                <label for="endDate">End Date</label>
+                <input type="date" id="endDate" name="EndDate" class="form-control" value="" />
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    @if (ViewBag.startDate != null && ViewBag.endDate != null)
+    {
+        <p align="right">
+            @Html.ActionLink("Generate PDF", "OrdersRecordListPdf", "Admin", new { startDate = ViewBag.startDate, endDate = ViewBag.endDate }, null)
+        </p>
+    }
+
+</div>
+
+
+<div id="orderRecords" class="card mx-auto w-75 mt-4" style="background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+    <!-- Table to display order records -->
+    <table id="orderRecordsTable" class="table table-striped">
+        <span class="text-danger">Total Records: @Model.Count()</span>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Total Quantity</th>
+                <th>Amount</th>
+                <th>After GST</th>
+                <th>Promo</th>
+                <th>Total Payable</th>
+                <th>CGST</th>
+                <th>SGST</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.formattedDate</td>
+                    <td>@item.TotalItems</td>
+                    <td>@item.TotalAmount</td>
+                    <td>@item.PaybleAmount</td>
+                    <td>@item.PromoCode</td>
+                    <td>@item.NetPaybleAmount</td>
+                    <td>@item.Cgst</td>
+                    <td>@item.Sgst</td>
+                    <td>
+                        <button class="btn btn-link item-details-btn" data-toggle="modal" data-target="#itemDetailsModal" onclick="showItemDetails(@item.OrderId)" data-itemid="@item.OrderId">
+                            <i class="fas fa-info-circle" style="color: #007bff; font-size: 20px;"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal for displaying item details -->
+<div class="modal fade" id="itemDetailsModal" tabindex="-1" role="dialog" aria-labelledby="itemDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemDetailsModalLabel">Item Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="itemDetailsContent">
+                    <!-- Item details will be dynamically populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/jquery-3.4.1.min.js"></script>
+<script>
+    function showItemDetails(orderId) {
+        $.ajax({
+            url: '@Url.Action("GetOrderDetails", "Admin")', 
+            type: 'GET',
+            data: { OrderId: orderId },
+            success: function (data) {
+                console.log(data);
+                if (data && data.length > 0) {
+                    var modalContent = '<div class="table-responsive"><table class="table table-bordered">';
+
+                    // Table header
+                    modalContent += '<thead class="thead-light">';
+                    modalContent += '<tr>';
+                    modalContent += '<th>Item Name</th>';
+                    modalContent += '<th>Quantity</th>';
+                    modalContent += '<th>Amount</th>';
+                    modalContent += '</tr>';
+                    modalContent += '</thead>';
+
+                    // Table body
+                    modalContent += '<tbody>';
+                    data.forEach(function (item) {
+                        modalContent += '<tr>';
+                        modalContent += '<td>' + item.ItemName + '</td>';
+                        modalContent += '<td>' + item.ItemQty + '</td>';
+                        modalContent += '<td>' + item.ItemAmount + '</td>';
+                        modalContent += '</tr>';
+                    });
+                    modalContent += '</tbody>';
+
+                    modalContent += '</table></div>';
+
+                    $('#itemDetailsContent').html(modalContent);
+                    $('#itemDetailsModal').modal('show');
+                } else {
+                    alert('No items found for this order.');
+                }
+            },
+            error: function (error) {
+                console.error('Error fetching item details:', error);
+                alert('Error fetching item details. Please try again.');
+            }
+        });
+    }
+</script>
