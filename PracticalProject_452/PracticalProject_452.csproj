@@ -147,6 +147,9 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\Theme\Dashboard\css\sb-admin-2.css" />
     <Content Include="Content\Theme\Dashboard\css\sb-admin-2.min.css" />
+    <Content Include="Content\Theme\Dashboard\img\shop.jfif" />
+    <Content Include="Content\Theme\Dashboard\img\shop1.jfif" />
+    <Content Include="Content\Theme\Dashboard\img\shops.jfif" />
     <Content Include="Content\Theme\Dashboard\img\undraw_posting_photo.svg" />
     <Content Include="Content\Theme\Dashboard\img\undraw_profile.svg" />
     <Content Include="Content\Theme\Dashboard\img\undraw_profile_1.svg" />

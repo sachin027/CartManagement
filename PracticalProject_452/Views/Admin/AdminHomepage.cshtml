@@ -19,6 +19,18 @@
         toastr.error('@TempData["error"]');
     </script>
 }
+@if (TempData["warning"] != null)
+{
+    <script>
+        toastr.warning('@TempData["warning"]');
+    </script>
+}
+@if (TempData["info"] != null)
+{
+    <script>
+        toastr.warning('@TempData["info"]');
+    </script>
+}
 <div class="container">
     <p class="text-danger" style="float:right;font-size:16px;font-weight:600" id="orderErr"></p>
     <div class="card mx-auto mb-4">
@@ -48,8 +60,8 @@
         </div>
     </div>
 
-    <table class="table table-bordered" id="orderTable">
-        <thead>
+    <table class="table table-bordered " id="orderTable" >
+        <thead style="background-color: #337ab7;" class="text-white">
             <tr>
                 <th scope="col">Item Name</th>
                 <th scope="col">Qty</th>
@@ -58,7 +70,7 @@
                 <th scope="col">Action</th>
             </tr>
         </thead>
-        <tbody id="ItemTableBody">
+        <tbody id="ItemTableBody" style="background-color: #F5F5DC;">
             @*<tr><td colspan="5" style="text-align:center">No Item Addded</td></tr>*@
         </tbody>
     </table>
@@ -78,8 +90,8 @@
                     <td style="padding: 10px; border: none;" id="cgst"></td>
                 </tr>
                 <tr>
-                    <td style="padding: 10px; border: none; color: black; font-size: 24px; font-weight: bold; ">Total Payable Amount</td>
-                    <td style="padding: 10px; border: none; font-size: 24px; font-weight: bold; color: black; " id="totalAmount"></td>
+                    <td style="padding: 10px; border: none; color: red; font-size: 24px; font-weight: bold; ">Total Payable Amount</td>
+                    <td style="padding: 10px; border: none; font-size: 24px; font-weight: bold; color: red; " id="totalAmount"></td>
                 </tr>
                 <tr>
                     <td style="padding: 10px; border: none; color: #2ecc71; font-size: 24px; font-weight: bold; ">Net Payable Amount</td>
@@ -160,8 +172,15 @@
         var discountAmount = 0;
 
     function checkValidItem() {
+
+        var selectedItem = $('#ItemId').val();
+        if (!selectedItem) {
+            toastr.warning("Please select an item!");
+            return false;
+        }
+
         if ($('#quantity').val() <= 0 || !$('#quantity').val()) {
-            toastr.error("Please enter quantity!");
+            toastr.warning("Please enter quantity!");
             $("#error").text("Please Enter Valid Quantity");
             return false;
         }
@@ -215,10 +234,10 @@
         } else {
             // Add new row if item does not exist
             var newRow = '<tr data-itemid="' + data.ItemId + '">' +
-                '<td>' + data.ItemName + '</td>' +
-                '<td class="itemQuantity">' + data.ItemQuantity + '</td>' +
-                '<td>' + data.Price + '</td>' +
-                '<td class="totalPrice">' + data.totalPrice.toFixed(2) + '</td>' +
+                '<td style="color: #000;">' + data.ItemName + '</td>' +
+                '<td class="itemQuantity" style="color: #000;">' + data.ItemQuantity + '</td>' +
+                '<td style="color: #000;">' + data.Price + '</td>' +
+                '<td class="totalPrice" style="color: #000; font-weight: bold; font-size: 1.2em;">' + data.totalPrice.toFixed(2) + '</td>' +
                 '<td> <button class="delete btn btn-danger" onclick=deleteItem(' + data.ItemId + ')  data-itemid=${data.ItemId}>Delete</button></td>' +
                 '</tr>';
             $('#orderTable tbody').append(newRow);
@@ -294,8 +313,8 @@
 
         // Update totals row
         var totalsRow = '<tr id="totalsRow">' +
-            '<td colspan="3">Total Items: ' + totalItems + '</td>' +
-            '<td colspan="2">Total Price: ' + totalOfPrice.toFixed(2) + '</td>' +
+            '<td colspan="3" style="color: #000; font-weight: bold; font-size: 1.5em;">Total Items: ' + totalItems + '</td>' +
+            '<td colspan="2" style="color: red; font-weight: bold; font-size: 1.5em;">Total Price: ' + totalOfPrice.toFixed(2) + '</td>' +
             '</tr>';
 
         $('#totalsRow').remove(); // Remove existing totals row if it exists
@@ -432,6 +451,12 @@
 
     $('.applyBtn').on('click', function () {
         var code = $('#coupenCode').val();
+
+        if (code.trim() === '') {
+            toastr.info("Please enter a coupon code.");
+            return; 
+        }
+
         $.ajax({
             url: '/Admin/ApplyCoupen?code=' + code,
             type: 'GET',
@@ -440,19 +465,31 @@
                 if (data.IsActive == 1) {
                     if (data.success == 1) {
                         if (data.Type == "Percentage") {
-                            toastr.success("coupen applied successfully");
+                            
+                            
                             var percent = parseInt(data.Percentage);
                             var coupenAmount = totalPaybleAmount * percent / 100;
-                            $('#netpaybleamount').text(totalPaybleAmount - coupenAmount);
-                            discountAmount = coupenAmount;
-                            $('#discountAmount').text(discountAmount.toFixed(2));
+                            if (coupenAmount > totalPaybleAmount) {
+                                toastr.warning("Sorry coupen can't applied . Please buy more items to save more money !");
+                            } else {
+                                toastr.success("coupen applied successfully");
+                                $('#netpaybleamount').text(totalPaybleAmount - coupenAmount);
+                                discountAmount = coupenAmount;
+                                $('#discountAmount').text(discountAmount.toFixed(2));
+                            }
 
                         } else if (data.Type == "Flat") {
                             var flatAmount = data.FlatAmount;
-                            $('#netpaybleamount').text(totalPaybleAmount - flatAmount);
-                            toastr.success("coupen applied successfully");
-                            discountAmount = flatAmount;
-                            $('#discountAmount').text(discountAmount.toFixed(2));
+                            if (flatAmount > totalPaybleAmount) {
+                                toastr.warning("Sorry coupen can't applied . Please buy more items to save more money !");
+                            } else {
+
+                                $('#netpaybleamount').text(totalPaybleAmount - flatAmount);
+                                toastr.success("coupen applied successfully");
+                                discountAmount = flatAmount;
+                                $('#discountAmount').text(discountAmount.toFixed(2));
+
+                            }
                         }
                     } else if (data.success == 0) {
                         toastr.error("coupen expired!");

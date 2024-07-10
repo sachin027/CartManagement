@@ -68,6 +68,21 @@
             }
         </tbody>
     </table>
+    @*@if (Model.count > 3)
+    {
+        <div class="d-flex justify-content-end">
+            <ul >
+
+                @for (int i = 1; i <= Math.Ceiling((double)Model.count / 5); i++)
+                {
+                    <li class="@(i == Model.current?"active":"") btn btn-primary ">
+                        <a href="@Url.Action("OrderList", "Admin",new { index = i})" class="text-white">@i</a>
+                    </li>
+                }
+            </ul>
+        </div>
+    }*@
+
 </div>
 
 <!-- Modal for displaying item details -->

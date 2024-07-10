@@ -10,5 +10,15 @@ namespace PracticalProject_452.Repository.Interface
     public interface IAdminInterface
     {
         List<ItemViewModel> GetOrderDetails(int id);
+
+        void createOrder(OrderModels orderModels);
+
+        List<OrderViewModel> GetOrderList(OrderViewModel order);
+
+        CoupenCodeModel ApplyCoupen(string code);
+
+        ItemMasterModel GetItemDetails(int id);
+
+        List<OrderViewModel> FindOrderSearchList(FilterDataOrderModel filterDataOrderModel);
     }
 }
